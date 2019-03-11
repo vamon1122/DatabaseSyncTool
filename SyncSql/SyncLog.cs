@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 
-namespace SyncLogger
+namespace SyncLog
 {
-    public class LogWriter
+    public class Log
     {
         internal string _LogFileName;
         internal string _LogFileDir;
@@ -16,7 +16,7 @@ namespace SyncLogger
         public string LogFileDir { get { return _LogFileDir; } }
         public string LogFileName { get { return _LogFileName; } }
 
-        public LogWriter(string fileName)
+        public Log(string fileName)
         {
             if (fileName.Contains('.'))
             {
@@ -32,10 +32,23 @@ namespace SyncLogger
             _LogFileName = fileName;
         }
 
-        public LogWriter(string fileName, string fileDirectory) : this(fileName)
+        public Log(string fileName, string fileDirectory) : this(fileName)
         {
             _LogFileDir = fileDirectory;
         }
+
+        /*
+        public string Read()
+        {
+            return File.ReadAllText(LogFileDir + LogFileName);
+        }
+        */
+        
+        public string[] Read()
+        {
+            return File.ReadAllLines(LogFileDir + LogFileName);
+        }
+        
 
         public void WriteLine(string pString)
         {
@@ -74,7 +87,7 @@ namespace SyncLogger
             }
         }
 
-        public void ClearLog()
+        public void Clear()
         {
             if (_LogFileDir != null)
             {
@@ -92,7 +105,7 @@ namespace SyncLogger
             WriteLine(""); //This is to stop the next line of the log being put on the same line as above
         }
 
-        public void DeleteLog()
+        public void Delete()
         {
             File.Delete(_LogFileDir);
         }

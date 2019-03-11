@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
+using Data;
+using SyncSql;
 
 namespace ProvisionProvider
 {
@@ -21,11 +23,11 @@ namespace ProvisionProvider
             // might want to look at this too for Change Tracking
             // https://mentormate.com/blog/database-synchronization-with-microsoft-sync-framework/
 
-            CreateProvision("BenTableScope", "BenTable");
+            Provisioning.CreateProviderProvision("BenTableScope", "BenTable", DataStore.ServerConn);
             Console.WriteLine("BenTableScope was created!");
             Console.ReadLine();
-            CreateProvision("ProductsScope", "Products");
-            CreateProvision("OrdersScope", "Orders");
+            Provisioning.CreateProviderProvision("ProductsScope", "Products", DataStore.ServerConn);
+            Provisioning.CreateProviderProvision("OrdersScope", "Orders", DataStore.ServerConn);
 
             return;
         }
@@ -79,37 +81,7 @@ namespace ProvisionProvider
         */
         #endregion
 
-        static void CreateProvision(string syncScopeDescription, string syncTableDescription)
-        {
-            try
-            {
-                // connect to server database
-                SqlConnection serverConn = new SqlConnection("Data Source=sanfrancisco\\mssql2012dev; Initial Catalog=SyncDB; uid=sa ; pwd=L3tme1n");
-                // connection string for Eskimos test
-                // SqlConnection serverConn = new SqlConnection("Data Source=q6.2eskimos.com; Initial Catalog=EskLeeTest; uid=test ; pwd=test1test");
-
-                // define a new scope named ProductsScope
-                DbSyncScopeDescription scopeDesc = new DbSyncScopeDescription(syncScopeDescription);
-
-                // get the description of the Products table from SyncDB dtabase
-                DbSyncTableDescription tableDesc = SqlSyncDescriptionBuilder.GetDescriptionForTable(syncTableDescription, serverConn);
-
-                // add the table description to the sync scope definition
-                scopeDesc.Tables.Add(tableDesc);
-
-                // create a server scope provisioning object based on the ProductScope
-                SqlSyncScopeProvisioning serverProvision = new SqlSyncScopeProvisioning(serverConn, scopeDesc);
-
-                // skipping the creation of table since table already exists on server
-                serverProvision.SetCreateTableDefault(DbSyncCreationOption.Skip);
-
-                serverProvision.Apply();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.InnerException);
-            }
-        }
+        
 
 
 

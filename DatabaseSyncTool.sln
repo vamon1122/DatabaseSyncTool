@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data", "Data\Data.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncSql", "SyncSql\SyncSql.csproj", "{B8378FDB-5F16-476A-8515-25234D8434E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateSampleRecords", "GenerateSampleRecords\GenerateSampleRecords.csproj", "{23A8D4F7-3024-4E55-A3D5-17AAEA01B7DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,14 @@ Global
 		{B8378FDB-5F16-476A-8515-25234D8434E0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B8378FDB-5F16-476A-8515-25234D8434E0}.Release|x64.ActiveCfg = Release|Any CPU
 		{B8378FDB-5F16-476A-8515-25234D8434E0}.Release|x64.Build.0 = Release|Any CPU
+		{23A8D4F7-3024-4E55-A3D5-17AAEA01B7DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23A8D4F7-3024-4E55-A3D5-17AAEA01B7DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23A8D4F7-3024-4E55-A3D5-17AAEA01B7DC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{23A8D4F7-3024-4E55-A3D5-17AAEA01B7DC}.Debug|x64.Build.0 = Debug|Any CPU
+		{23A8D4F7-3024-4E55-A3D5-17AAEA01B7DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23A8D4F7-3024-4E55-A3D5-17AAEA01B7DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23A8D4F7-3024-4E55-A3D5-17AAEA01B7DC}.Release|x64.ActiveCfg = Release|Any CPU
+		{23A8D4F7-3024-4E55-A3D5-17AAEA01B7DC}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

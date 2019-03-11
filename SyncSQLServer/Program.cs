@@ -21,7 +21,9 @@ namespace SyncSQLServer
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Syncing...");
             Console.WriteLine(Sync.Synchronise("ProductsScope") + Sync.Synchronise("OrdersScope"));
+            Console.WriteLine("Sync complete.");
         }
     }
 }

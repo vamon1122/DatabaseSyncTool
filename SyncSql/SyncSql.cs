@@ -10,13 +10,15 @@ using Microsoft.Synchronization;
 using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
 using Microsoft.Synchronization.Data.SqlServerCe;
-using SyncLogger;
+using SyncLog;
+using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace SyncSql
 {
     public static class Sync
     {
-        private static readonly LogWriter SyncLog = new LogWriter("SyncLog");
+        private static readonly Log SyncLog = new Log("SyncLog");
 
         public static string Synchronise(string syncScope)
         {
@@ -69,14 +71,34 @@ namespace SyncSql
                 void Program_ApplyChangeFailed(object sender, DbApplyChangeFailedEventArgs e)
                 {
                     // display conflict type
-                    stats += "\n" + e.Conflict.Type;
+                    stats += "\r\n" + e.Conflict.Type;
 
                     // display error message 
-                    stats += "\n" + e.Error;
+                    stats += "\r\n" + e.Error;
                 }
             }
-            catch (Exception e) {
-                throw e;
+            catch (Exception e)
+            {
+                string message = "There was an error whilst syncing the data. Did you loose connection?";
+                string caption = "Sync Error";
+                MessageBoxButtons buttons = MessageBoxButtons.YesNo;
+                DialogResult result;
+
+                // Displays the MessageBox.
+
+                result = MessageBox.Show(message, caption, buttons);
+
+                if (result == DialogResult.Yes)
+                {
+
+                    // Closes the parent form.
+
+                    //this.Close();
+
+                }
+
+                Debug.WriteLine("Exception whilst syncing = " + e);
+                return "There was an exception whilst syncing: " + e;
             }
         }
 
