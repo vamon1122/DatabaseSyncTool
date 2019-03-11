@@ -284,5 +284,14 @@ namespace SyncWindowsInterface
             */
         }
 
+        private void Button_UnprovisionClient_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Button_UnprovisionProvider_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
