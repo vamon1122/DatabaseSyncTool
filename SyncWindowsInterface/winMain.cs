@@ -276,7 +276,17 @@ namespace SyncWindowsInterface
         {
             if (ProviderConnectionExists())
             {
-                Provisioning.DeprovisionDatabase(InputProviderConnectionString.Text);
+                try
+                {
+                    Provisioning.DeprovisionDatabase(InputProviderConnectionString.Text);
+                }
+                catch (DbNotProvisionedException)
+                {
+                    string message = "This database has already been unpublished!";
+                    string caption = "Already Unpublished";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    MessageBox.Show(message, caption, buttons);
+                }
             }
 
             UpdateLists();
@@ -286,7 +296,18 @@ namespace SyncWindowsInterface
         {
             if (ClientConnectionExists())
             {
-                Provisioning.DeprovisionDatabase(InputClientConnectionString.Text);
+                try
+                {
+                    Provisioning.DeprovisionDatabase(InputClientConnectionString.Text);
+                }
+                catch (DbNotProvisionedException)
+                {
+                    string message = "This database has already been unsubscribed!";
+                    string caption = "Already Unsubscribed";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    MessageBox.Show(message, caption, buttons);
+                }
+                
             }
 
             UpdateLists();

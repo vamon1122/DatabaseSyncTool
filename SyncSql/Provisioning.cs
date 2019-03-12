@@ -82,6 +82,7 @@ namespace SyncSql
 
         public static void DeprovisionDatabase(string pProviderConn)
         {
+
             SqlConnection conn = new SqlConnection(pProviderConn);
             SqlSyncScopeDeprovisioning deprovisionProvider = new SqlSyncScopeDeprovisioning(conn);
             deprovisionProvider.DeprovisionStore();
