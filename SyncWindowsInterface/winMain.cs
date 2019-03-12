@@ -49,6 +49,7 @@ namespace SyncWindowsInterface
             string caption = "Connection Error";
             MessageBoxButtons buttons = MessageBoxButtons.OK;
             MessageBox.Show(message, caption, buttons);
+
         }
 
         private bool ProviderConnectionExists()
@@ -89,7 +90,7 @@ namespace SyncWindowsInterface
         {
             CheckedListBox_UnprovisionedProviderTables.Items.Clear();
 
-            if (ProviderConnectionExists())
+            if (!string.IsNullOrEmpty(ProviderConnectionString) && !string.IsNullOrWhiteSpace(ProviderConnectionString)) //Using 'ProviderConnectionExists()' would cause a message to be shown
             {
                 if (!string.IsNullOrEmpty(ClientConnectionString) && !string.IsNullOrWhiteSpace(ClientConnectionString)) //Using 'ClientConnectionExists()' would cause a message to be shown
                 {
@@ -100,7 +101,7 @@ namespace SyncWindowsInterface
                 }
                 else
                 {
-                    foreach (string tableName in Provisioning.GetAllNormalTables(ProviderConnectionString))
+                    foreach (string tableName in Provisioning.GetBaseTables(ProviderConnectionString))
                     {
                         CheckedListBox_UnprovisionedProviderTables.Items.Add(tableName);
                     }
@@ -112,9 +113,9 @@ namespace SyncWindowsInterface
         {
             CheckedListBox_ProvisionedClientTables.Items.Clear();
 
-            if (!string.IsNullOrEmpty(ClientConnectionString) && !string.IsNullOrWhiteSpace(ClientConnectionString))
+            if (!string.IsNullOrEmpty(ClientConnectionString) && !string.IsNullOrWhiteSpace(ClientConnectionString) && !string.IsNullOrEmpty(ProviderConnectionString) && !string.IsNullOrWhiteSpace(ProviderConnectionString)) //Using 'ProviderConnectionExists()' & 'ClientConnectionExists()' would cause a message to be shown
             {
-                foreach (string tableName in Provisioning.GetProvisionedTables(ClientConnectionString))
+                foreach (string tableName in Provisioning.GetSyncedTables(ProviderConnectionString, ClientConnectionString))
                 {
                     CheckedListBox_ProvisionedClientTables.Items.Add(tableName);
                 }
@@ -232,21 +233,32 @@ namespace SyncWindowsInterface
         private void Button_LoadProvider_Click(object sender, EventArgs e)
         {
             if (TestConnection(InputProviderConnectionString))
+            {
                 ProviderConnectionString = InputProviderConnectionString.Text;
+            }
             else
+            {
+                ProviderConnectionString = null;
                 DisplayFailedConnectionError();
+            }
 
-            UpdateUnsyncedList();
+            UpdateLists();
         }
 
         private void Button_LoadClient_Click(object sender, EventArgs e)
         {
             if (TestConnection(InputClientConnectionString))
+            {
                 ClientConnectionString = InputClientConnectionString.Text;
+            }
             else
+            {
+                ClientConnectionString = null;
                 DisplayFailedConnectionError();
+            }
 
-            UpdateSyncedList();
+            //If ProviderConnectionExists
+            UpdateLists();
         }
 
         private void Button_ProvisionTables_Click(object sender, EventArgs e)

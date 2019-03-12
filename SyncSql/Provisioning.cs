@@ -137,6 +137,24 @@ namespace SyncSql
             return unsyncedTables;
         }
 
+        public static List<string> GetSyncedTables(string pProviderConn, string pClientConn)
+        {
+            List<string> allProviderTables = GetAllTables(pProviderConn);
+            List<string> allClientTables = GetAllTables(pClientConn);
+
+            var syncedTables = new List<string>();
+
+            foreach (string table in allProviderTables)
+            {
+                if (table != "schema_info" && table != "scope_info" && table != "scope_config" && !table.Contains("_tracking"))
+                {
+                    if (allClientTables.Contains(table + "_tracking"))
+                        syncedTables.Add(table);
+                }
+            }
+            return syncedTables;
+        }
+
         public static List<string> GetAllTables(string pConnectionString)
         {
             var allTables = new List<string>();
@@ -157,7 +175,7 @@ namespace SyncSql
             return allTables;
         }
 
-        public static List<string> GetAllNormalTables(string pConnectionString)
+        public static List<string> GetBaseTables(string pConnectionString)
         {
             var normalTables = new List<string>();
             foreach(var table in GetAllTables(pConnectionString))
