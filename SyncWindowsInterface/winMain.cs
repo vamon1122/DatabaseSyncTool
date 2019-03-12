@@ -307,7 +307,6 @@ namespace SyncWindowsInterface
                     MessageBoxButtons buttons = MessageBoxButtons.OK;
                     MessageBox.Show(message, caption, buttons);
                 }
-                
             }
 
             UpdateLists();
