@@ -52,10 +52,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Data\Data.csproj">
-      <Project>{7446b5a9-d4d7-42e8-aa47-056a085f461f}</Project>
-      <Name>Data</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SyncSql\SyncSql.csproj">
       <Project>{b8378fdb-5f16-476a-8515-25234d8434e0}</Project>
       <Name>SyncSql</Name>

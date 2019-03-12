@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SyncSql;
-using Data;
 using System.Data.SqlClient;
 using Microsoft.Synchronization;
 using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
 using Microsoft.Synchronization.Data.SqlServerCe;
-using SyncLog;
 using System.Windows.Forms;
 using System.Diagnostics;
 
@@ -29,7 +27,7 @@ namespace SyncSql
 
                 SqlConnection clientConn = new SqlConnection(DataStore.ClientConn);
 
-                SqlConnection serverConn = new SqlConnection(DataStore.ServerConn);
+                SqlConnection serverConn = new SqlConnection(DataStore.ProviderConn);
 
                 //SqlConnection serverConn = new SqlConnection("Data Source=q6.2eskimos.com; Initial Catalog=EskLeeTest; uid=test ; pwd=test1test");
 

@@ -13,9 +13,7 @@ using Microsoft.Synchronization;
 using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
 using Microsoft.Synchronization.Data.SqlServerCe;
-using Data;
 using SyncSql;
-using SyncLog;
 using System.Diagnostics;
 
 namespace SyncWindowsInterface
@@ -43,41 +41,84 @@ namespace SyncWindowsInterface
             }
         }
 
+        
 
-
-
-        private void btnSyncNow_Click(object sender, EventArgs e)
+        private void DisplayFailedConnectionError()
         {
-            txtStatus.Text = Sync.Synchronise("ProductsScope") + Sync.Synchronise("OrdersScope");
+            string message = "Could not establish a connection to the database. Please check that the supplied connection string is valid.";
+            string caption = "Connection Error";
+            MessageBoxButtons buttons = MessageBoxButtons.OK;
+            MessageBox.Show(message, caption, buttons);
         }
 
-        private void ButtonLoadProvider_Click(object sender, EventArgs e)
+        private bool ProviderConnectionExists()
         {
-
-
-            if (TestConnection(InputProviderConnectionString))
+            if (string.IsNullOrEmpty(ProviderConnectionString) || string.IsNullOrWhiteSpace(ProviderConnectionString))
             {
-                ProviderConnectionString = InputProviderConnectionString.Text;
-                foreach (string tableName in GetProvisionedTables(ProviderConnectionString))
-                {
-                    CheckedListBox_ProvisionedProviderTables.Items.Add(tableName);
-                }
-
-                foreach (string tableName in GetUnprovisionedTables(ProviderConnectionString))
-                {
-                    CheckedListBox_UnprovisionedProviderTables.Items.Add(tableName);
-                }
+                string message = "A valid connection has not yet been submitted for the provider database.";
+                string caption = "Connection Error";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                MessageBox.Show(message, caption, buttons);
+                return false;
             }
 
+            return true;
         }
 
-        private void ButtonLoadClient_Click(object sender, EventArgs e)
+        private bool ClientConnectionExists()
         {
-            if (TestConnection(InputClientConnectionString))
-                ClientConnectionString = InputClientConnectionString.Text;
+            if (string.IsNullOrEmpty(ClientConnectionString) || string.IsNullOrWhiteSpace(ClientConnectionString))
+            {
+                string message = "A valid connection has not yet been submitted for the client database.";
+                string caption = "Connection Error";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                MessageBox.Show(message, caption, buttons);
+                return false;
+            }
 
+            return true;
+        }
 
+        private void UpdateLists()
+        {
+            UpdateUnsyncedList();
+            UpdateSyncedList();
+        }
 
+        private void UpdateUnsyncedList()
+        {
+            CheckedListBox_UnprovisionedProviderTables.Items.Clear();
+
+            if (ProviderConnectionExists())
+            {
+                if (!string.IsNullOrEmpty(ClientConnectionString) && !string.IsNullOrWhiteSpace(ClientConnectionString)) //Using 'ClientConnectionExists()' would cause a message to be shown
+                {
+                    foreach (string tableName in Provisioning.GetUnsyncedTables(ProviderConnectionString, ClientConnectionString))
+                    {
+                        CheckedListBox_UnprovisionedProviderTables.Items.Add(tableName);
+                    }
+                }
+                else
+                {
+                    foreach (string tableName in Provisioning.GetAllNormalTables(ProviderConnectionString))
+                    {
+                        CheckedListBox_UnprovisionedProviderTables.Items.Add(tableName);
+                    }
+                }
+            }
+        }
+
+        private void UpdateSyncedList()
+        {
+            CheckedListBox_ProvisionedClientTables.Items.Clear();
+
+            if (!string.IsNullOrEmpty(ClientConnectionString) && !string.IsNullOrWhiteSpace(ClientConnectionString))
+            {
+                foreach (string tableName in Provisioning.GetProvisionedTables(ClientConnectionString))
+                {
+                    CheckedListBox_ProvisionedClientTables.Items.Add(tableName);
+                }
+            }
         }
 
         private bool TestConnection(TextBox pInput)
@@ -94,58 +135,6 @@ namespace SyncWindowsInterface
             }
         }
 
-        private List<string> GetProvisionedTables(string pConnectionString)
-        {
-            List<string> allTables = GetAllTables(pConnectionString);
-            var provisionedTables = new List<string>();
-
-            foreach (string tempTable in allTables)
-            {
-                if (tempTable != "schema_info" && tempTable != "scope_info" && tempTable != "scope_config" && !tempTable.Contains("_tracking"))
-                {
-                    if (allTables.Contains(tempTable + "_tracking"))
-                        provisionedTables.Add(tempTable);
-                }
-            }
-            return provisionedTables;
-        }
-
-        private List<string> GetUnprovisionedTables(string pConnectionString)
-        {
-            List<string> allTables = GetAllTables(pConnectionString);
-            var provisionedTables = new List<string>();
-
-            foreach (string tempTable in allTables)
-            {
-                if (tempTable != "schema_info" && tempTable != "scope_info" && tempTable != "scope_config" && !tempTable.Contains("_tracking"))
-                {
-                    if (!allTables.Contains(tempTable + "_tracking"))
-                        provisionedTables.Add(tempTable);
-                }
-            }
-            return provisionedTables;
-        }
-
-        private List<string> GetAllTables(string pConnectionString)
-        {
-            var allTables = new List<string>();
-            using (SqlConnection conn = new SqlConnection(pConnectionString))
-            {
-                conn.Open();
-                SqlCommand getTables = new SqlCommand("SELECT * FROM Sys.Tables", conn);
-
-                using (SqlDataReader reader = getTables.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        allTables.Add(reader[0].ToString());
-                    }
-                }
-            }
-
-            return allTables;
-        }
-
         private bool TestConnection(string pConnectionString)
         {
             try
@@ -155,30 +144,22 @@ namespace SyncWindowsInterface
                 testConn.Close();
                 return true;
             }
-            catch (Exception e)
+            catch
             {
-
-                string message = "Could not establish a connection to the database. Please check that the supplied connection string is valid.";
-                string caption = "Connection Error";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                MessageBox.Show(message, caption, buttons);
-
                 return false;
             }
         }
 
-        private void Button_ProvisionClient_Click(object sender, EventArgs e)
+        private void ProvisionTablesOnClient()
         {
-            if (TestConnection(InputProviderConnectionString) && TestConnection(InputClientConnectionString))
+            if (ClientConnectionExists() && ProviderConnectionExists())
             {
-                foreach (var itemChecked in CheckedListBox_ProvisionedProviderTables.CheckedItems)
+                foreach (var itemChecked in CheckedListBox_UnprovisionedProviderTables.CheckedItems)
                 {
-                    if (GetProvisionedTables(ProviderConnectionString).Contains(itemChecked.ToString()))
+                    if (Provisioning.GetProvisionedTables(ProviderConnectionString).Contains(itemChecked.ToString()))
                     {
                         try
                         {
-                            Debug.WriteLine("ClientConn = " + ClientConnectionString);
-                            Debug.WriteLine("ServerConn = " + ProviderConnectionString);
                             Provisioning.CreateClientProvision(itemChecked.ToString() + "Scope", ClientConnectionString, ProviderConnectionString);
                         }
                         catch
@@ -188,21 +169,21 @@ namespace SyncWindowsInterface
                     }
                     else
                     {
-                        MessageBox.Show(string.Format("The \"{0}\" table did not exist on the provider database anymore.", itemChecked.ToString()), "Provisioning Error", MessageBoxButtons.OK);
+                        MessageBox.Show(string.Format("Could not provision the table on the client. The \"{0}\" table did not exist on the provider database anymore.", itemChecked.ToString()), "Provisioning Error", MessageBoxButtons.OK);
                     }
                 }
-                MessageBox.Show("All tables were successfully provisioned on the client database.", "Success", MessageBoxButtons.OK);
+                //MessageBox.Show("All tables were successfully provisioned on the client database.", "Success", MessageBoxButtons.OK);
 
             }
         }
 
-        private void Button_ProvisionProvider_Click(object sender, EventArgs e)
+        private void ProvisionTablesOnProvider()
         {
-            if (TestConnection(InputProviderConnectionString))
+            if (ProviderConnectionExists())
             {
                 foreach (var itemChecked in CheckedListBox_UnprovisionedProviderTables.CheckedItems)
                 {
-                    if (GetUnprovisionedTables(ProviderConnectionString).Contains(itemChecked.ToString()))
+                    if (Provisioning.GetUnprovisionedTables(ProviderConnectionString).Contains(itemChecked.ToString()))
                     {
                         try
                         {
@@ -215,83 +196,88 @@ namespace SyncWindowsInterface
                     }
                     else
                     {
-                        MessageBox.Show(string.Format("The \"{0}\" table did not exist on the provider database anymore.", itemChecked.ToString()), "Provisioning Error", MessageBoxButtons.OK);
+                        //MessageBox.Show(string.Format("The \"{0}\" table has already been provisioned on the provider!", itemChecked.ToString()), "Provisioning Error", MessageBoxButtons.OK);
                     }
 
-                    MessageBox.Show("All tables were successfully provisioned on the provider database.", "Success", MessageBoxButtons.OK);
+                    //MessageBox.Show("All tables were successfully provisioned on the provider database.", "Success", MessageBoxButtons.OK);
 
                 }
             }
+        }
 
-
-
-
-            /*
-            private void OLD_btnSyncNow_Click(object sender, EventArgs e)
-            {
-
-                Synchronise("ProductsScope");
-
-                Synchronise("OrdersScope");
-
-                Synchronise("z_Scope_2Bapv1CatagoryMap");
-                Synchronise("z_Scope_2Bapv1CategoryToLevelMap");
-                Synchronise("z_Scope_AssessmentScheme");
-                Synchronise("z_Scope_AssessmentSchemeJudgement");
-                Synchronise("z_Scope_CurriculumFramework");
-                Synchronise("z_Scope_FrameworkCategory");
-                Synchronise("z_Scope_Note");
-                Synchronise("z_Scope_Objective");
-                Synchronise("z_Scope_ObjectiveLevel");
-                Synchronise("z_Scope_ObjectiveLevelScheme");
-                Synchronise("z_Scope_ObjectiveLevelYearGroup");
-                Synchronise("z_Scope_Observation");
-                Synchronise("z_Scope_ObservationLearner");
-                Synchronise("z_Scope_ObservationNote");
-                Synchronise("z_Scope_ObservationObjective");
-                Synchronise("z_Scope_SchoolYearPeriod");
-                Synchronise("z_Scope_AdminModuleMenuItem");
-                Synchronise("z_Scope_AdminModuleMenuItemRoleItem");
-
-                Synchronise("z_Scope_AuditEvent");
-                Synchronise("z_Scope_AuditEventType");
-                Synchronise("z_Scope_AvatarFileInfo");
-                Synchronise("z_Scope_BookBand");
-                Synchronise("z_Scope_BookBandYearGroup");
-                Synchronise("z_Scope_BookPack");
-                Synchronise("z_Scope_BookPackMiscueBook");
-                Synchronise("z_Scope_BookPackSchool");
-                Synchronise("z_Scope_Client");
-                Synchronise("z_Scope_DbVersion");
-                Synchronise("z_Scope_Group");
-                Synchronise("z_Scope_GroupUser");
-
-                Synchronise("z_Scope_HiLo");
-                Synchronise("z_Scope_Learner");
-                Synchronise("z_Scope_LearnerGroup");
-                Synchronise("z_Scope_LearnerProfile");
-                Synchronise("z_Scope_LearnerTag");
-                Synchronise("z_Scope_MiscueBook");
-                Synchronise("z_Scope_MiscueSession");
-                Synchronise("z_Scope_MiscueSessionComment");
-                Synchronise("z_Scope_MiscueSessionLevel");
-                Synchronise("z_Scope_MiscueSessionRecordFileInfo");
-                Synchronise("z_Scope_MiscueType");
-                Synchronise("z_Scope_MiscueTypeGroup");
-
-
+        private void btnSyncNow_Click(object sender, EventArgs e)
+        {
+            if (ClientConnectionExists() && ProviderConnectionExists()) {
+                foreach (string tableName in Provisioning.GetProvisionedTables(ClientConnectionString))
+                {
+                    if (Provisioning.GetProvisionedTables(ProviderConnectionString).Contains(tableName.ToString()))
+                    {
+                        try
+                        {
+                            txtStatus.Text += Sync.Synchronise(tableName + "Scope");
+                        }
+                        catch
+                        {
+                            MessageBox.Show(string.Format("There was an error whilst syncing the \"{0}\" table. Please check the log.", tableName.ToString()), "Sync Error", MessageBoxButtons.OK);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show(string.Format("The \"{0}\" table did not exist on the provider database anymore.", tableName.ToString()), "Sync Error", MessageBoxButtons.OK);
+                    }
+                }
             }
-            */
         }
 
-        private void Button_UnprovisionClient_Click(object sender, EventArgs e)
+        private void Button_LoadProvider_Click(object sender, EventArgs e)
         {
+            if (TestConnection(InputProviderConnectionString))
+                ProviderConnectionString = InputProviderConnectionString.Text;
+            else
+                DisplayFailedConnectionError();
 
+            UpdateUnsyncedList();
         }
 
-        private void Button_UnprovisionProvider_Click(object sender, EventArgs e)
+        private void Button_LoadClient_Click(object sender, EventArgs e)
         {
+            if (TestConnection(InputClientConnectionString))
+                ClientConnectionString = InputClientConnectionString.Text;
+            else
+                DisplayFailedConnectionError();
 
+            UpdateSyncedList();
+        }
+
+        private void Button_ProvisionTables_Click(object sender, EventArgs e)
+        {
+            if (ClientConnectionExists() && ProviderConnectionExists())
+            {
+                ProvisionTablesOnProvider();
+                ProvisionTablesOnClient();
+            }
+
+            UpdateLists();
+        }
+
+        private void Button_DeprovisionProvider_Click(object sender, EventArgs e)
+        {
+            if (ProviderConnectionExists())
+            {
+                Provisioning.DeprovisionDatabase(InputProviderConnectionString.Text);
+            }
+
+            UpdateLists();
+        }
+
+        private void Button_DeprovisionClient_Click(object sender, EventArgs e)
+        {
+            if (ClientConnectionExists())
+            {
+                Provisioning.DeprovisionDatabase(InputClientConnectionString.Text);
+            }
+
+            UpdateLists();
         }
     }
 }

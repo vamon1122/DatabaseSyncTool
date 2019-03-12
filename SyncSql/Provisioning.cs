@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
-using Data;
 using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
 using System.Diagnostics;
-using SyncLog;
 
 namespace SyncSql
 {
@@ -80,6 +78,95 @@ namespace SyncSql
                 ProvisioningLog.WriteLine(tempErrorMessage);
                 throw e;
             }
+        }
+
+        public static void DeprovisionDatabase(string pProviderConn)
+        {
+            SqlConnection conn = new SqlConnection(pProviderConn);
+            SqlSyncScopeDeprovisioning deprovisionProvider = new SqlSyncScopeDeprovisioning(conn);
+            deprovisionProvider.DeprovisionStore();
+        }
+
+        public static List<string> GetProvisionedTables(string pConnectionString)
+        {
+            List<string> allTables = GetAllTables(pConnectionString);
+            var provisionedTables = new List<string>();
+
+            foreach (string tempTable in allTables)
+            {
+                if (tempTable != "schema_info" && tempTable != "scope_info" && tempTable != "scope_config" && !tempTable.Contains("_tracking"))
+                {
+                    if (allTables.Contains(tempTable + "_tracking"))
+                        provisionedTables.Add(tempTable);
+                }
+            }
+            return provisionedTables;
+        }
+
+        public static List<string> GetUnprovisionedTables(string pConnectionString)
+        {
+            List<string> allTables = GetAllTables(pConnectionString);
+            var provisionedTables = new List<string>();
+
+            foreach (string tempTable in allTables)
+            {
+                if (tempTable != "schema_info" && tempTable != "scope_info" && tempTable != "scope_config" && !tempTable.Contains("_tracking"))
+                {
+                    if (!allTables.Contains(tempTable + "_tracking"))
+                        provisionedTables.Add(tempTable);
+                }
+            }
+            return provisionedTables;
+        }
+
+        public static List<string> GetUnsyncedTables(string pProviderConn, string pClientConn)
+        {
+            List<string> allProviderTables = GetAllTables(pProviderConn);
+            List<string> allClientTables = GetAllTables(pClientConn);
+
+            var unsyncedTables = new List<string>();
+
+            foreach (string table in allProviderTables)
+            {
+                if (table != "schema_info" && table != "scope_info" && table != "scope_config" && !table.Contains("_tracking"))
+                {
+                    if (!allClientTables.Contains(table + "_tracking"))
+                        unsyncedTables.Add(table);
+                }
+            }
+            return unsyncedTables;
+        }
+
+        public static List<string> GetAllTables(string pConnectionString)
+        {
+            var allTables = new List<string>();
+            using (SqlConnection conn = new SqlConnection(pConnectionString))
+            {
+                conn.Open();
+                SqlCommand getTables = new SqlCommand("SELECT * FROM Sys.Tables", conn);
+
+                using (SqlDataReader reader = getTables.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        allTables.Add(reader[0].ToString());
+                    }
+                }
+            }
+
+            return allTables;
+        }
+
+        public static List<string> GetAllNormalTables(string pConnectionString)
+        {
+            var normalTables = new List<string>();
+            foreach(var table in GetAllTables(pConnectionString))
+            if (table != "schema_info" && table != "scope_info" && table != "scope_config" && !table.Contains("_tracking"))
+            {
+                normalTables.Add(table);
+            }
+
+            return normalTables;
         }
     }
 }
