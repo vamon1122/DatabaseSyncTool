@@ -98,7 +98,7 @@ namespace SyncSql
             }
         }
 
-        public static bool TestSqlConnectionString(string pConnectionString)
+        public static bool ConnectionStringIsValid(string pConnectionString)
         {
             try
             {

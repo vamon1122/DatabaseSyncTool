@@ -13,7 +13,9 @@ using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
 using Microsoft.Synchronization.Data.SqlServerCe;
 using SyncSql;
+using SyncSql.Logging;
 using System.Configuration;
+
 
 namespace SyncSQLServer
 {
@@ -27,38 +29,28 @@ namespace SyncSQLServer
             string tempProviderConn = ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString;
             string tempClientConn = ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString;
 
-            if (Sync.TestSqlConnectionString(tempProviderConn))
+            if (Sync.ConnectionStringIsValid(tempProviderConn))
             {
                 ProviderConnectionString = tempProviderConn;
 
-                if (Sync.TestSqlConnectionString(tempClientConn))
+                if (Sync.ConnectionStringIsValid(tempClientConn))
                 {
                     ClientConnectionString = tempClientConn;
 
-                    Console.WriteLine("Syncing...");
+                    Logs.SyncLog.WriteLine("Sync service begun at " + DateTime.Now);
                     Console.WriteLine(Sync.Synchronise("ProductsScope", ProviderConnectionString, ClientConnectionString) + Sync.Synchronise("OrdersScope", ProviderConnectionString, ClientConnectionString));
-                    Console.WriteLine("Sync complete.");
+                    Logs.SyncLog.WriteLine("Sync completed at " + DateTime.Now);
                 }
                 else
                 {
-                    WriteLineError("There was an error whilst connecting to the client database. Please check your connection and check that the client connection string, which is specified " +
+                    Logs.SyncLog.WriteLine("There was an error whilst connecting to the client database. Please check your connection and check that the client connection string, which is specified " +
                     "in the app configuration file, is valid.");
                 }
             }
             else
             {
-                WriteLineError("There was an error whilst connecting to the provider database. Please check your connection and check that the provider connection string, which is specified " +
+                Logs.SyncLog.WriteLine("There was an error whilst connecting to the provider database. Please check your connection and check that the provider connection string, which is specified " +
                     "in the app configuration file, is valid.");
-            }
-
-
-            void WriteLineError(string pString)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(pString);
-                Console.ResetColor();
-                Console.Write("(press enter to dismiss)");
-                Console.ReadLine();
             }
 
         }

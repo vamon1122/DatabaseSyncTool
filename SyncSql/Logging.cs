@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using System.Diagnostics;
 
 namespace SyncSql.Logging
 {
@@ -13,13 +12,14 @@ namespace SyncSql.Logging
         public static readonly Log SyncLog = new Log("SyncLog");
         public static readonly Log ProvisioningLog = new Log("ProvisioningLog");
     }
+
     public class Log
     {
-        internal string _LogFileName;
-        internal string _LogFileDir;
+        internal string logFileName;
+        internal string logFileDirectory;
 
-        public string LogFileDir { get { return _LogFileDir; } }
-        public string LogFileName { get { return _LogFileName; } }
+        public string LogFileDirectory { get { return logFileDirectory; } }
+        public string LogFileName { get { return logFileName; } }
 
         internal Log(string fileName)
         {
@@ -34,49 +34,49 @@ namespace SyncSql.Logging
             {
                 fileName += ".txt";
             }
-            _LogFileName = fileName;
+            logFileName = fileName;
         }
 
         internal Log(string fileName, string fileDirectory) : this(fileName)
         {
-            _LogFileDir = fileDirectory;
+            logFileDirectory = fileDirectory;
         }
         
         public string[] Read()
         {
-            return File.ReadAllLines(LogFileDir + LogFileName);
+            return File.ReadAllLines(LogFileDirectory + LogFileName);
         }
 
         public void WriteLine(string pString)
         {
-            if (_LogFileDir != null)
+            if (logFileDirectory != null)
             {
-                if (!System.IO.Directory.Exists(_LogFileDir))
+                if (!System.IO.Directory.Exists(logFileDirectory))
                 {
-                    System.IO.Directory.CreateDirectory(_LogFileDir);
+                    System.IO.Directory.CreateDirectory(logFileDirectory);
                 }
 
-                if (_LogFileDir.Substring(_LogFileDir.Length - 1, 1) != @"\")
+                if (logFileDirectory.Substring(logFileDirectory.Length - 1, 1) != @"\")
                 {
-                    _LogFileDir += @"\";
+                    logFileDirectory += @"\";
                 }
             }
 
-            if (File.Exists(_LogFileDir + _LogFileName))
+            if (File.Exists(logFileDirectory + logFileName))
             {
-                using (StreamWriter streamWriter = File.AppendText(_LogFileDir + _LogFileName))
+                using (StreamWriter streamWriter = File.AppendText(logFileDirectory + logFileName))
                 {
                     streamWriter.WriteLine(pString);
                 }
             }
             else
             {
-                using (FileStream fileStream = new FileStream(_LogFileDir + _LogFileName, FileMode.Create))
+                using (FileStream fileStream = new FileStream(logFileDirectory + logFileName, FileMode.Create))
                 {
 
                     using (StreamWriter streamWriter = new StreamWriter(fileStream))
                     {
-                        streamWriter.WriteLine("{0} - Log \"{1}\" did not exist. Log has been created", DateTime.Now.ToString(), _LogFileName);
+                        streamWriter.WriteLine("{0} - Log \"{1}\" did not exist. Log has been created", DateTime.Now.ToString(), logFileName);
                         streamWriter.WriteLine(pString);
                     }
                 }
@@ -86,25 +86,25 @@ namespace SyncSql.Logging
 
         public void Clear()
         {
-            if (_LogFileDir != null)
+            if (logFileDirectory != null)
             {
-                if (!Directory.Exists(_LogFileDir))
+                if (!Directory.Exists(logFileDirectory))
                 {
-                    Directory.CreateDirectory(_LogFileDir);
+                    Directory.CreateDirectory(logFileDirectory);
                 }
 
-                if (_LogFileDir.Substring(_LogFileDir.Length - 1, 1) != @"\")
+                if (logFileDirectory.Substring(logFileDirectory.Length - 1, 1) != @"\")
                 {
-                    _LogFileDir += @"\";
+                    logFileDirectory += @"\";
                 }
             }
-            File.WriteAllText(_LogFileDir + _LogFileName, String.Format("{0} - Log \"{1}\" was cleared!", DateTime.Now.ToString(), _LogFileName));
+            File.WriteAllText(logFileDirectory + logFileName, String.Format("{0} - Log \"{1}\" was cleared!", DateTime.Now.ToString(), logFileName));
             WriteLine(""); //This is to stop the next line of the log being put on the same line as above
         }
 
         public void Delete()
         {
-            File.Delete(_LogFileDir);
+            File.Delete(logFileDirectory);
         }
     }
 }

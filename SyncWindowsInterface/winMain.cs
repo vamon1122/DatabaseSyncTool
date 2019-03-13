@@ -7,15 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
-using System.Data.SqlClient;
-using Microsoft.Synchronization;
 using Microsoft.Synchronization.Data;
-using Microsoft.Synchronization.Data.SqlServer;
-using Microsoft.Synchronization.Data.SqlServerCe;
 using SyncSql;
 using SyncSql.Logging;
-using System.Diagnostics;
 using System.Configuration;
 
 namespace SyncWindowsInterface
@@ -38,14 +32,14 @@ namespace SyncWindowsInterface
             string tempProviderConn = ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString;
             string tempClientConn = ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString;
 
-            if (Sync.TestSqlConnectionString(tempProviderConn))
+            if (Sync.ConnectionStringIsValid(tempProviderConn))
             {
                 InputProviderConnectionString.Text = tempProviderConn;
                 ProviderConnectionString = tempProviderConn;
                 UpdateAllLists();
             }
 
-            if (Sync.TestSqlConnectionString(tempClientConn))
+            if (Sync.ConnectionStringIsValid(tempClientConn))
             {
                 InputClientConnectionString.Text = tempClientConn;
                 ClientConnectionString = tempClientConn;
@@ -68,28 +62,30 @@ namespace SyncWindowsInterface
 
         }
 
-        private bool DisplayNoProviderConnectionError()
+        private void DisplayNoConnectionError(string pDatabaseType)
+        {
+            string message = string.Format("A valid connection has not yet been submitted for the {0} database. Please enter a connection string for the {0} in the 'Settings' tab.", pDatabaseType);
+            string caption = "Connection Error";
+            MessageBoxButtons buttons = MessageBoxButtons.OK;
+            MessageBox.Show(message, caption, buttons);
+        }
+
+        private bool ProviderConnectionStringExists()
         {
             if (string.IsNullOrEmpty(ProviderConnectionString) || string.IsNullOrWhiteSpace(ProviderConnectionString))
             {
-                string message = "A valid connection has not yet been submitted for the provider database.";
-                string caption = "Connection Error";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                MessageBox.Show(message, caption, buttons);
+                DisplayNoConnectionError("provider");
                 return false;
             }
 
             return true;
         }
 
-        private bool DisplayNoClientConnectionError()
+        private bool ClientConnectionStringExists()
         {
             if (string.IsNullOrEmpty(ClientConnectionString) || string.IsNullOrWhiteSpace(ClientConnectionString))
             {
-                string message = "A valid connection has not yet been submitted for the client database.";
-                string caption = "Connection Error";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                MessageBox.Show(message, caption, buttons);
+                DisplayNoConnectionError("client");
                 return false;
             }
 
@@ -138,9 +134,9 @@ namespace SyncWindowsInterface
             }
         }
 
-        private bool TestSqlConnectionString(TextBox pInput)
+        private bool ConnectionStringIsValid(TextBox pInput)
         {
-            if (Sync.TestSqlConnectionString(pInput.Text))
+            if (Sync.ConnectionStringIsValid(pInput.Text))
             {
                 pInput.BackColor = System.Drawing.Color.LightGreen;
                 return true;
@@ -156,7 +152,7 @@ namespace SyncWindowsInterface
         #region Button Handlers
         private void Button_SyncNow_Click(object sender, EventArgs e)
         {
-            if (DisplayNoClientConnectionError() && DisplayNoProviderConnectionError()) {
+            if (ClientConnectionStringExists() && ProviderConnectionStringExists()) {
                 foreach (string tableName in Provisioning.GetProvisionedTables(ClientConnectionString))
                 {
                     if (Provisioning.GetProvisionedTables(ProviderConnectionString).Contains(tableName.ToString()))
@@ -180,7 +176,7 @@ namespace SyncWindowsInterface
 
         private void Button_UpdateProviderConnectionString_Click(object sender, EventArgs e)
         {
-            if (TestSqlConnectionString(InputProviderConnectionString))
+            if (ConnectionStringIsValid(InputProviderConnectionString))
             {
                 ProviderConnectionString = InputProviderConnectionString.Text;
                 ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString = ProviderConnectionString;
@@ -196,7 +192,7 @@ namespace SyncWindowsInterface
 
         private void Button_UpdateClientConnectionString_Click(object sender, EventArgs e)
         {
-            if (TestSqlConnectionString(InputClientConnectionString))
+            if (ConnectionStringIsValid(InputClientConnectionString))
             {
                 ClientConnectionString = InputClientConnectionString.Text;
                 ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString = ClientConnectionString;
@@ -213,7 +209,7 @@ namespace SyncWindowsInterface
 
         private void Button_ProvisionTables_Click(object sender, EventArgs e)
         {
-            if (DisplayNoClientConnectionError() && DisplayNoProviderConnectionError())
+            if (ClientConnectionStringExists() && ProviderConnectionStringExists())
             {
                 ProvisionTablesOnProvider();
                 ProvisionTablesOnClient();
@@ -223,7 +219,7 @@ namespace SyncWindowsInterface
 
             void ProvisionTablesOnClient()
             {
-                if (DisplayNoClientConnectionError() && DisplayNoProviderConnectionError())
+                if (ClientConnectionStringExists() && ProviderConnectionStringExists())
                 {
                     foreach (var itemChecked in CheckedListBox_UnprovisionedProviderTables.CheckedItems)
                     {
@@ -250,7 +246,7 @@ namespace SyncWindowsInterface
 
             void ProvisionTablesOnProvider()
             {
-                if (DisplayNoProviderConnectionError())
+                if (ProviderConnectionStringExists())
                 {
                     foreach (var itemChecked in CheckedListBox_UnprovisionedProviderTables.CheckedItems)
                     {
@@ -279,7 +275,7 @@ namespace SyncWindowsInterface
 
         private void Button_DeprovisionProvider_Click(object sender, EventArgs e)
         {
-            if (DisplayNoProviderConnectionError())
+            if (ProviderConnectionStringExists())
             {
                 try
                 {
@@ -299,7 +295,7 @@ namespace SyncWindowsInterface
 
         private void Button_DeprovisionClient_Click(object sender, EventArgs e)
         {
-            if (DisplayNoClientConnectionError())
+            if (ClientConnectionStringExists())
             {
                 try
                 {
