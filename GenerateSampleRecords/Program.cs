@@ -30,13 +30,15 @@ namespace GenerateSampleRecords
             void WriteLineError(string pString)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(pString);
+                Console.Write(pString);
                 Console.ResetColor();
+                Console.Write("(press enter to dismiss)");
+                Console.ReadLine();
             }
 
             void inputConnectionString()
             {
-                WriteInput("Connection String: ");
+                WriteInput("Connection string: ");
                 string response = Console.ReadLine();
                 if (string.IsNullOrEmpty(response) || string.IsNullOrWhiteSpace(response))
                 {

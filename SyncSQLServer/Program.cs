@@ -13,6 +13,7 @@ using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
 using Microsoft.Synchronization.Data.SqlServerCe;
 using SyncSql;
+using System.Configuration;
 
 namespace SyncSQLServer
 {
@@ -20,9 +21,49 @@ namespace SyncSQLServer
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Syncing...");
-            Console.WriteLine(Sync.Synchronise("ProductsScope") + Sync.Synchronise("OrdersScope"));
-            Console.WriteLine("Sync complete.");
+            string ProviderConnectionString;
+            string ClientConnectionString;
+
+            string tempProviderConn = ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString;
+            string tempClientConn = ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString;
+
+            if (Sql.TestSqlConnectionString(tempProviderConn))
+            {
+                ProviderConnectionString = tempProviderConn;
+
+                if (Sql.TestSqlConnectionString(tempClientConn))
+                {
+                    ClientConnectionString = tempClientConn;
+
+                    Console.WriteLine("Syncing...");
+                    Console.WriteLine(Sync.Synchronise("ProductsScope", ProviderConnectionString, ClientConnectionString) + Sync.Synchronise("OrdersScope", ProviderConnectionString, ClientConnectionString));
+                    Console.WriteLine("Sync complete.");
+                    Console.ReadLine();
+                }
+                else
+                {
+                    WriteLineError("There was an error whilst connecting to the client database. Please check your connection and check that the client connection string, which is specified " +
+                    "in the app configuration file, is valid.");
+                }
+            }
+            else
+            {
+                WriteLineError("There was an error whilst connecting to the provider database. Please check your connection and check that the provider connection string, which is specified " +
+                    "in the app configuration file, is valid.");
+            }
+
+
+            void WriteLineError(string pString)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(pString);
+                Console.ResetColor();
+                Console.Write("(press enter to dismiss)");
+                Console.ReadLine();
+            }
+
         }
+
+        
     }
 }
