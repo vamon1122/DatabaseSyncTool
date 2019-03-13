@@ -15,6 +15,7 @@ using Microsoft.Synchronization.Data.SqlServer;
 using Microsoft.Synchronization.Data.SqlServerCe;
 using SyncSql;
 using System.Diagnostics;
+using System.Configuration;
 
 namespace SyncWindowsInterface
 {
@@ -33,7 +34,8 @@ namespace SyncWindowsInterface
             dataGridView1.Columns[0].Name = "History Of Logs";
             dataGridView1.Columns[0].Width = 450; //Cannot be dynamic aparrently
 
-
+            InputProviderConnectionString.Text = ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString;
+            InputClientConnectionString.Text = ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString;
 
             for (int i = 0; i < noOfLines; i++)
             {
