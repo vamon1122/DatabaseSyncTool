@@ -27,18 +27,17 @@ namespace SyncSQLServer
             string tempProviderConn = ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString;
             string tempClientConn = ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString;
 
-            if (Sql.TestSqlConnectionString(tempProviderConn))
+            if (Sync.TestSqlConnectionString(tempProviderConn))
             {
                 ProviderConnectionString = tempProviderConn;
 
-                if (Sql.TestSqlConnectionString(tempClientConn))
+                if (Sync.TestSqlConnectionString(tempClientConn))
                 {
                     ClientConnectionString = tempClientConn;
 
                     Console.WriteLine("Syncing...");
                     Console.WriteLine(Sync.Synchronise("ProductsScope", ProviderConnectionString, ClientConnectionString) + Sync.Synchronise("OrdersScope", ProviderConnectionString, ClientConnectionString));
                     Console.WriteLine("Sync complete.");
-                    Console.ReadLine();
                 }
                 else
                 {

@@ -14,6 +14,7 @@ using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
 using Microsoft.Synchronization.Data.SqlServerCe;
 using SyncSql;
+using SyncSql.Logging;
 using System.Diagnostics;
 using System.Configuration;
 
@@ -22,7 +23,6 @@ namespace SyncWindowsInterface
     public partial class winMain : Form
     {
         #region Variables & Properties
-        private static readonly Log SyncLog = new Log("SyncLog");
         public string ProviderConnectionString { get; set; }
         public string ClientConnectionString { get; set; }
         #endregion
@@ -30,7 +30,7 @@ namespace SyncWindowsInterface
         public winMain()
         {
             InitializeComponent();
-            int noOfLines = SyncLog.Read().Count();
+            int noOfLines = Logs.SyncLog.Read().Count();
             //dataGridView1.ColumnCount = 1;
             //dataGridView1.Columns[0].Name = "History Of Logs";
             //dataGridView1.Columns[0].Width = 450; //Cannot be dynamic aparrently
@@ -38,14 +38,14 @@ namespace SyncWindowsInterface
             string tempProviderConn = ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString;
             string tempClientConn = ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString;
 
-            if (Sql.TestSqlConnectionString(tempProviderConn))
+            if (Sync.TestSqlConnectionString(tempProviderConn))
             {
                 InputProviderConnectionString.Text = tempProviderConn;
                 ProviderConnectionString = tempProviderConn;
                 UpdateAllLists();
             }
 
-            if (Sql.TestSqlConnectionString(tempClientConn))
+            if (Sync.TestSqlConnectionString(tempClientConn))
             {
                 InputClientConnectionString.Text = tempClientConn;
                 ClientConnectionString = tempClientConn;
@@ -140,7 +140,7 @@ namespace SyncWindowsInterface
 
         private bool TestSqlConnectionString(TextBox pInput)
         {
-            if (Sql.TestSqlConnectionString(pInput.Text))
+            if (Sync.TestSqlConnectionString(pInput.Text))
             {
                 pInput.BackColor = System.Drawing.Color.LightGreen;
                 return true;
@@ -231,7 +231,7 @@ namespace SyncWindowsInterface
                         {
                             try
                             {
-                                Provisioning.CreateClientProvision(itemChecked.ToString() + "Scope", ClientConnectionString, ProviderConnectionString);
+                                Provisioning.ProvisionTableOnClient(itemChecked.ToString() + "Scope", ProviderConnectionString, ClientConnectionString);
                             }
                             catch
                             {
@@ -258,7 +258,7 @@ namespace SyncWindowsInterface
                         {
                             try
                             {
-                                Provisioning.CreateProviderProvision(itemChecked.ToString() + "Scope", itemChecked.ToString(), ProviderConnectionString);
+                                Provisioning.ProvisionTableOnProvider(itemChecked.ToString() + "Scope", itemChecked.ToString(), ProviderConnectionString);
                             }
                             catch
                             {

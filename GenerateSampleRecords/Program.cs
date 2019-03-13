@@ -47,7 +47,7 @@ namespace GenerateSampleRecords
                 }
                 else
                 {
-                    if (Sql.TestSqlConnectionString(response))
+                    if (Sync.TestSqlConnectionString(response))
                     {
                         connectionString = response;
                     }
@@ -56,10 +56,7 @@ namespace GenerateSampleRecords
                         WriteLineError("Could not connect to a database using this connection string. Please try again.");
                         inputConnectionString();
                     }
-                    
                 }
-                    
-                    
             }
 
             void inputNoOfProducts()
@@ -86,11 +83,7 @@ namespace GenerateSampleRecords
                         inputNoOfProducts();
                     }
                 }
-
-                
-                    
             }
-
 
             void inputNoOfOrders()
             {

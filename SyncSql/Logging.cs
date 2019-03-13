@@ -6,8 +6,13 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 
-namespace SyncSql
+namespace SyncSql.Logging
 {
+    public static class Logs
+    {
+        public static readonly Log SyncLog = new Log("SyncLog");
+        public static readonly Log ProvisioningLog = new Log("ProvisioningLog");
+    }
     public class Log
     {
         internal string _LogFileName;
@@ -16,7 +21,7 @@ namespace SyncSql
         public string LogFileDir { get { return _LogFileDir; } }
         public string LogFileName { get { return _LogFileName; } }
 
-        public Log(string fileName)
+        internal Log(string fileName)
         {
             if (fileName.Contains('.'))
             {
@@ -32,7 +37,7 @@ namespace SyncSql
             _LogFileName = fileName;
         }
 
-        public Log(string fileName, string fileDirectory) : this(fileName)
+        internal Log(string fileName, string fileDirectory) : this(fileName)
         {
             _LogFileDir = fileDirectory;
         }

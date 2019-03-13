@@ -7,27 +7,26 @@ using System.Data.SqlClient;
 using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
 using System.Diagnostics;
+using SyncSql.Logging;
 
 namespace SyncSql
 {
-    public class Provisioning
+    public static class Provisioning
     {
-        static Log ProvisioningLog = new Log("ProvisioningLog");
-
-        public static void CreateProviderProvision(string syncScopeDescription, string syncTableDescription, string pProviderConn)
+        public static void ProvisionTableOnProvider(string pScopeName, string pTableName, string pProviderConnectionString)
         {
             try
             {
                 // connect to server database
-                SqlConnection serverConn = new SqlConnection(pProviderConn);
+                SqlConnection serverConn = new SqlConnection(pProviderConnectionString);
                 // connection string for Eskimos test
                 // SqlConnection serverConn = new SqlConnection("Data Source=q6.2eskimos.com; Initial Catalog=EskLeeTest; uid=test ; pwd=test1test");
 
                 // define a new scope named ProductsScope
-                DbSyncScopeDescription scopeDesc = new DbSyncScopeDescription(syncScopeDescription);
+                DbSyncScopeDescription scopeDesc = new DbSyncScopeDescription(pScopeName);
 
                 // get the description of the Products table from SyncDB dtabase
-                DbSyncTableDescription tableDesc = SqlSyncDescriptionBuilder.GetDescriptionForTable(syncTableDescription, serverConn);
+                DbSyncTableDescription tableDesc = SqlSyncDescriptionBuilder.GetDescriptionForTable(pTableName, serverConn);
 
                 // add the table description to the sync scope definition
                 scopeDesc.Tables.Add(tableDesc);
@@ -44,26 +43,26 @@ namespace SyncSql
             {
                 string tempErrorMessage = "There was an exception whilst creating a provider provision: " + e;
                 Debug.WriteLine(tempErrorMessage);
-                ProvisioningLog.WriteLine(tempErrorMessage);
+                Logs.ProvisioningLog.WriteLine(tempErrorMessage);
                 throw e;
             }
         }
 
-        public static void CreateClientProvision(string pSyncScopeDescription, string pClientConn, string pProviderConn)
+        public static void ProvisionTableOnClient(string pScopeName, string pProviderConnectionString, string pClientConnectionString)
         {
             try
             {
 
                 // create a connection to the SyncExpressDB database
-                SqlConnection clientConn = new SqlConnection(pClientConn);
+                SqlConnection clientConn = new SqlConnection(pClientConnectionString);
 
                 // create a connection to the SyncDB server database
-                SqlConnection serverConn = new SqlConnection(pProviderConn);
+                SqlConnection serverConn = new SqlConnection(pProviderConnectionString);
                 // connection string for Eskimos test
                 //SqlConnection serverConn = new SqlConnection("Data Source=q6.2eskimos.com; Initial Catalog=EskLeeTest; uid=test ; pwd=test1test");
 
                 // get the description of ProductsScope from the SyncDB server database
-                DbSyncScopeDescription scopeDesc = SqlSyncDescriptionBuilder.GetDescriptionForScope(pSyncScopeDescription, serverConn);
+                DbSyncScopeDescription scopeDesc = SqlSyncDescriptionBuilder.GetDescriptionForScope(pScopeName, serverConn);
 
                 // create server provisioning object based on the ProductsScope
                 SqlSyncScopeProvisioning clientProvision = new SqlSyncScopeProvisioning(clientConn, scopeDesc);
@@ -75,15 +74,15 @@ namespace SyncSql
             {
                 string tempErrorMessage = "There was an exception whilst creating a client provision: " + e;
                 Debug.WriteLine(tempErrorMessage);
-                ProvisioningLog.WriteLine(tempErrorMessage);
+                Logs.ProvisioningLog.WriteLine(tempErrorMessage);
                 throw e;
             }
         }
 
-        public static void DeprovisionDatabase(string pProviderConn)
+        public static void DeprovisionDatabase(string pProviderConnectionString)
         {
 
-            SqlConnection conn = new SqlConnection(pProviderConn);
+            SqlConnection conn = new SqlConnection(pProviderConnectionString);
             SqlSyncScopeDeprovisioning deprovisionProvider = new SqlSyncScopeDeprovisioning(conn);
             deprovisionProvider.DeprovisionStore();
         }
@@ -152,10 +151,10 @@ namespace SyncSql
             return provisionedTables;
         }
 
-        public static List<string> GetUnsyncedTables(string pProviderConn, string pClientConn)
+        public static List<string> GetUnsyncedTables(string pProviderConnectionString, string pClientConnectionString)
         {
-            List<string> allProviderTables = GetAllTables(pProviderConn);
-            List<string> allClientTables = GetAllTables(pClientConn);
+            List<string> allProviderTables = GetAllTables(pProviderConnectionString);
+            List<string> allClientTables = GetAllTables(pClientConnectionString);
 
             var unsyncedTables = new List<string>();
 
@@ -170,10 +169,10 @@ namespace SyncSql
             return unsyncedTables;
         }
 
-        public static List<string> GetSyncedTables(string pProviderConn, string pClientConn)
+        public static List<string> GetSyncedTables(string pProviderConnectionString, string pClientConnectionString)
         {
-            List<string> allProviderTables = GetAllTables(pProviderConn);
-            List<string> allClientTables = GetAllTables(pClientConn);
+            List<string> allProviderTables = GetAllTables(pProviderConnectionString);
+            List<string> allClientTables = GetAllTables(pClientConnectionString);
 
             var syncedTables = new List<string>();
 

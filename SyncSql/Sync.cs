@@ -11,13 +11,12 @@ using Microsoft.Synchronization.Data.SqlServer;
 using Microsoft.Synchronization.Data.SqlServerCe;
 using System.Windows.Forms;
 using System.Diagnostics;
+using SyncSql.Logging;
 
 namespace SyncSql
 {
     public static class Sync
     {
-        private static readonly Log SyncLog = new Log("SyncLog");
-
         public static string Synchronise(string syncScope, string pProviderConnectionString, string pClientConnectionString)
         {
             try
@@ -61,7 +60,7 @@ namespace SyncSql
                 stats = stats + "Total Changes Downloaded: " + syncStats.DownloadChangesTotal + "\r\n";
                 stats = stats + "Complete Time: " + syncStats.SyncEndTime + "\r\n";
 
-                SyncLog.WriteLine(stats);
+                Logs.SyncLog.WriteLine(stats);
 
                 return stats;
 
@@ -96,6 +95,21 @@ namespace SyncSql
 
                 Debug.WriteLine("Exception whilst syncing = " + e);
                 return "There was an exception whilst syncing: " + e;
+            }
+        }
+
+        public static bool TestSqlConnectionString(string pConnectionString)
+        {
+            try
+            {
+                SqlConnection testConn = new SqlConnection(pConnectionString);
+                testConn.Open();
+                testConn.Close();
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

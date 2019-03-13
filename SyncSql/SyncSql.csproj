@@ -53,9 +53,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Provisioning.cs" />
-    <Compile Include="Sql.cs" />
     <Compile Include="Sync.cs" />
-    <Compile Include="Log.cs" />
+    <Compile Include="Logging.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
