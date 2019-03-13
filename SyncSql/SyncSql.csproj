@@ -52,10 +52,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataStore.cs" />
     <Compile Include="Provisioning.cs" />
-    <Compile Include="SyncSql.cs" />
-    <Compile Include="SyncLog.cs" />
+    <Compile Include="Sql.cs" />
+    <Compile Include="Sync.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

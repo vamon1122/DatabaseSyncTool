@@ -12,7 +12,6 @@ using Microsoft.Synchronization;
 using Microsoft.Synchronization.Data;
 using Microsoft.Synchronization.Data.SqlServer;
 using Microsoft.Synchronization.Data.SqlServerCe;
-using Data;
 using SyncSql;
 
 namespace SyncSQLServer

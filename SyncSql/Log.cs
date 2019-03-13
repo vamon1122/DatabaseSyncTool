@@ -36,19 +36,11 @@ namespace SyncSql
         {
             _LogFileDir = fileDirectory;
         }
-
-        /*
-        public string Read()
-        {
-            return File.ReadAllText(LogFileDir + LogFileName);
-        }
-        */
         
         public string[] Read()
         {
             return File.ReadAllLines(LogFileDir + LogFileName);
         }
-        
 
         public void WriteLine(string pString)
         {

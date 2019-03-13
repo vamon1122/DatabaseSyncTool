@@ -88,20 +88,36 @@ namespace SyncSql
             deprovisionProvider.DeprovisionStore();
         }
 
-        public static List<string> GetProvisionedTables(string pConnectionString)
+        public static List<string> GetAllTables(string pConnectionString)
         {
-            List<string> allTables = GetAllTables(pConnectionString);
-            var provisionedTables = new List<string>();
-
-            foreach (string tempTable in allTables)
+            var allTables = new List<string>();
+            using (SqlConnection conn = new SqlConnection(pConnectionString))
             {
-                if (tempTable != "schema_info" && tempTable != "scope_info" && tempTable != "scope_config" && !tempTable.Contains("_tracking"))
+                conn.Open();
+                SqlCommand getTables = new SqlCommand("SELECT * FROM Sys.Tables", conn);
+
+                using (SqlDataReader reader = getTables.ExecuteReader())
                 {
-                    if (allTables.Contains(tempTable + "_tracking"))
-                        provisionedTables.Add(tempTable);
+                    while (reader.Read())
+                    {
+                        allTables.Add(reader[0].ToString());
+                    }
                 }
             }
-            return provisionedTables;
+
+            return allTables;
+        }
+
+        public static List<string> GetBaseTables(string pConnectionString)
+        {
+            var normalTables = new List<string>();
+            foreach (var table in GetAllTables(pConnectionString))
+                if (table != "schema_info" && table != "scope_info" && table != "scope_config" && !table.Contains("_tracking"))
+                {
+                    normalTables.Add(table);
+                }
+
+            return normalTables;
         }
 
         public static List<string> GetUnprovisionedTables(string pConnectionString)
@@ -114,6 +130,22 @@ namespace SyncSql
                 if (tempTable != "schema_info" && tempTable != "scope_info" && tempTable != "scope_config" && !tempTable.Contains("_tracking"))
                 {
                     if (!allTables.Contains(tempTable + "_tracking"))
+                        provisionedTables.Add(tempTable);
+                }
+            }
+            return provisionedTables;
+        }
+
+        public static List<string> GetProvisionedTables(string pConnectionString)
+        {
+            List<string> allTables = GetAllTables(pConnectionString);
+            var provisionedTables = new List<string>();
+
+            foreach (string tempTable in allTables)
+            {
+                if (tempTable != "schema_info" && tempTable != "scope_info" && tempTable != "scope_config" && !tempTable.Contains("_tracking"))
+                {
+                    if (allTables.Contains(tempTable + "_tracking"))
                         provisionedTables.Add(tempTable);
                 }
             }
@@ -154,38 +186,6 @@ namespace SyncSql
                 }
             }
             return syncedTables;
-        }
-
-        public static List<string> GetAllTables(string pConnectionString)
-        {
-            var allTables = new List<string>();
-            using (SqlConnection conn = new SqlConnection(pConnectionString))
-            {
-                conn.Open();
-                SqlCommand getTables = new SqlCommand("SELECT * FROM Sys.Tables", conn);
-
-                using (SqlDataReader reader = getTables.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        allTables.Add(reader[0].ToString());
-                    }
-                }
-            }
-
-            return allTables;
-        }
-
-        public static List<string> GetBaseTables(string pConnectionString)
-        {
-            var normalTables = new List<string>();
-            foreach(var table in GetAllTables(pConnectionString))
-            if (table != "schema_info" && table != "scope_info" && table != "scope_config" && !table.Contains("_tracking"))
-            {
-                normalTables.Add(table);
-            }
-
-            return normalTables;
         }
     }
 }

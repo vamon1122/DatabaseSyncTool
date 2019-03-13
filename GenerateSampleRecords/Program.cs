@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
-using Data;
+using SyncSql;
 
 namespace GenerateSampleRecords
 {
@@ -12,30 +12,111 @@ namespace GenerateSampleRecords
     {
         static void Main(string[] args)
         {
+            string connectionString;
             int noOfProductsToGenerate = 0;
             int noOfOrdersToGenerate = 0;
 
+            inputConnectionString();
             inputNoOfProducts();
             inputNoOfOrders();
 
+            void WriteInput(string pString)
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.Write(pString);
+                Console.ResetColor();
+            }
+
+            void WriteLineError(string pString)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(pString);
+                Console.ResetColor();
+            }
+
+            void inputConnectionString()
+            {
+                WriteInput("Connection String: ");
+                string response = Console.ReadLine();
+                if (string.IsNullOrEmpty(response) || string.IsNullOrWhiteSpace(response))
+                {
+                    WriteLineError("You must specify a connection string to the database which you would like to generate the records on.");
+                    inputConnectionString();
+                }
+                else
+                {
+                    if (Sql.TestSqlConnectionString(response))
+                    {
+                        connectionString = response;
+                    }
+                    else
+                    {
+                        WriteLineError("Could not connect to a database using this connection string. Please try again.");
+                        inputConnectionString();
+                    }
+                    
+                }
+                    
+                    
+            }
+
             void inputNoOfProducts()
             {
-                Console.WriteLine("How many products should I generate?");
-                int.TryParse(Console.ReadLine(), out noOfProductsToGenerate);
-                if (noOfProductsToGenerate == 0)
+                WriteInput("Number of products to generate: ");
+                string response = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(response) || string.IsNullOrWhiteSpace(response))
+                {
+                    WriteLineError("You must specify a number of products to create on the database.");
                     inputNoOfProducts();
+                }
+
+                if(response == "0")
+                {
+                    noOfProductsToGenerate = 0;
+                }
+                else
+                {
+                    int.TryParse(response, out noOfProductsToGenerate);
+                    if (noOfProductsToGenerate == 0)
+                    {
+                        WriteLineError(string.Format("Could not convert \"{0}\" to a number.", response));
+                        inputNoOfProducts();
+                    }
+                }
+
+                
+                    
             }
 
 
             void inputNoOfOrders()
             {
-                Console.WriteLine("How many orders should I generate?");
-                int.TryParse(Console.ReadLine(), out noOfOrdersToGenerate);
-                if (noOfOrdersToGenerate == 0)
+                WriteInput("Number of orders to generate: ");
+                string response = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(response) || string.IsNullOrWhiteSpace(response))
+                {
+                    WriteLineError("You must specify a number of orders to create on the database.");
                     inputNoOfOrders();
+                }
+
+                if (response == "0")
+                {
+                    noOfOrdersToGenerate = 0;
+                }
+                else
+                {
+                    int.TryParse(response, out noOfOrdersToGenerate);
+                    if (noOfOrdersToGenerate == 0)
+                    {
+                        WriteLineError(string.Format("Could not convert \"{0}\" to a number.", response));
+                        inputNoOfOrders();
+                    }
+                }
             }
 
-            using (SqlConnection conn = new SqlConnection(DataStore.ServerConn))
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
 

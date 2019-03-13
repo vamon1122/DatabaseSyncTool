@@ -18,18 +18,16 @@ namespace SyncSql
     {
         private static readonly Log SyncLog = new Log("SyncLog");
 
-        public static string Synchronise(string syncScope)
+        public static string Synchronise(string syncScope, string pProviderConnectionString, string pClientConnectionString)
         {
             try
             {
                 // If all these sync requests are atomic, what happens if there are joined tables, triggers etc?
                 // Can sync requests be combined?
 
-                SqlConnection clientConn = new SqlConnection(DataStore.ClientConn);
+                SqlConnection clientConn = new SqlConnection(pProviderConnectionString);
 
-                SqlConnection serverConn = new SqlConnection(DataStore.ProviderConn);
-
-                //SqlConnection serverConn = new SqlConnection("Data Source=q6.2eskimos.com; Initial Catalog=EskLeeTest; uid=test ; pwd=test1test");
+                SqlConnection serverConn = new SqlConnection(pClientConnectionString);
 
                 // create the sync orhcestrator
                 SyncOrchestrator syncOrchestrator = new SyncOrchestrator();
@@ -45,7 +43,8 @@ namespace SyncSql
                 // set the direction of sync session to Upload and Download
                 syncOrchestrator.Direction = SyncDirectionOrder.UploadAndDownload;
 
-                
+                //If there is an error, 'Program-ApplyChangeFailed()' will be called.
+                //This method needs access to the 'stats' string.
                 string stats = "";
 
                 // subscribe for errors that occur when applying changes to the client
@@ -99,7 +98,5 @@ namespace SyncSql
                 return "There was an exception whilst syncing: " + e;
             }
         }
-
-
     }
 }
