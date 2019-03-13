@@ -30,16 +30,29 @@ namespace SyncWindowsInterface
         {
             InitializeComponent();
             int noOfLines = SyncLog.Read().Count();
-            dataGridView1.ColumnCount = 1;
-            dataGridView1.Columns[0].Name = "History Of Logs";
-            dataGridView1.Columns[0].Width = 450; //Cannot be dynamic aparrently
+            //dataGridView1.ColumnCount = 1;
+            //dataGridView1.Columns[0].Name = "History Of Logs";
+            //dataGridView1.Columns[0].Width = 450; //Cannot be dynamic aparrently
 
-            InputProviderConnectionString.Text = ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString;
-            InputClientConnectionString.Text = ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString;
+            string tempProviderConn = ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString;
+            string tempClientConn = ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString;
+            if (TestConnection(tempProviderConn))
+            {
+                InputProviderConnectionString.Text = tempProviderConn;
+                ProviderConnectionString = tempProviderConn;
+                UpdateLists();
+            }
+
+            if (TestConnection(tempClientConn))
+            {
+                InputClientConnectionString.Text = tempClientConn;
+                ClientConnectionString = tempClientConn;
+                UpdateLists();
+            }
 
             for (int i = 0; i < noOfLines; i++)
             {
-                dataGridView1.Rows.Add(SyncLog.Read()[i]);
+                //dataGridView1.Rows.Add(SyncLog.Read()[i]);
             }
         }
 
@@ -113,13 +126,13 @@ namespace SyncWindowsInterface
 
         private void UpdateSyncedList()
         {
-            CheckedListBox_ProvisionedClientTables.Items.Clear();
+            ListBox_ProvisionedClientTables.Items.Clear();
 
             if (!string.IsNullOrEmpty(ClientConnectionString) && !string.IsNullOrWhiteSpace(ClientConnectionString) && !string.IsNullOrEmpty(ProviderConnectionString) && !string.IsNullOrWhiteSpace(ProviderConnectionString)) //Using 'ProviderConnectionExists()' & 'ClientConnectionExists()' would cause a message to be shown
             {
                 foreach (string tableName in Provisioning.GetSyncedTables(ProviderConnectionString, ClientConnectionString))
                 {
-                    CheckedListBox_ProvisionedClientTables.Items.Add(tableName);
+                    ListBox_ProvisionedClientTables.Items.Add(tableName);
                 }
             }
         }
@@ -237,6 +250,7 @@ namespace SyncWindowsInterface
             if (TestConnection(InputProviderConnectionString))
             {
                 ProviderConnectionString = InputProviderConnectionString.Text;
+                ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString = ProviderConnectionString;
             }
             else
             {
@@ -252,6 +266,7 @@ namespace SyncWindowsInterface
             if (TestConnection(InputClientConnectionString))
             {
                 ClientConnectionString = InputClientConnectionString.Text;
+                ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString = ClientConnectionString;
             }
             else
             {
