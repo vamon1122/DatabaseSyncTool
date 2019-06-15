@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SyncSql;
+using System.Diagnostics;
 
 namespace SyncWindowsInterface
 {
@@ -15,8 +16,10 @@ namespace SyncWindowsInterface
         [STAThread]
         static void Main()
         {
+            Debug.WriteLine("Hello world!");
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            Debug.WriteLine("Launching application...");
             Application.Run(new winMain());
         }
     }

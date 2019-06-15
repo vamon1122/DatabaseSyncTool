@@ -11,6 +11,7 @@ using Microsoft.Synchronization.Data;
 using SyncSql;
 using SyncSql.Logging;
 using System.Configuration;
+using System.Diagnostics;
 
 namespace SyncWindowsInterface
 {
@@ -23,22 +24,31 @@ namespace SyncWindowsInterface
 
         public winMain()
         {
+            Debug.WriteLine("Hit winMain constructor");
             InitializeComponent();
             int noOfLines = Logs.SyncLog.Read().Count();
             //dataGridView1.ColumnCount = 1;
             //dataGridView1.Columns[0].Name = "History Of Logs";
             //dataGridView1.Columns[0].Width = 450; //Cannot be dynamic aparrently
 
+
+            Debug.WriteLine("Getting default connection strings");
             string tempProviderConn = ConfigurationManager.ConnectionStrings["defaultProviderConnectionString"].ConnectionString;
             string tempClientConn = ConfigurationManager.ConnectionStrings["defaultClientConnectionString"].ConnectionString;
 
+            Debug.WriteLine("Got default connection strings successfully!");
+
+            Debug.WriteLine("Getting db1");
+
             if (Sync.ConnectionStringIsValid(tempProviderConn))
             {
+                Debug.WriteLine("db1 is valid!");
                 InputProviderConnectionString.Text = tempProviderConn;
                 ProviderConnectionString = tempProviderConn;
                 UpdateAllLists();
             }
 
+            Debug.WriteLine("Getting db2");
             if (Sync.ConnectionStringIsValid(tempClientConn))
             {
                 InputClientConnectionString.Text = tempClientConn;

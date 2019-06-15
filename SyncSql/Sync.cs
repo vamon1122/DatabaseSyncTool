@@ -102,13 +102,20 @@ namespace SyncSql
         {
             try
             {
+                /*
+                Debug.WriteLine("Testing connection...");
                 SqlConnection testConn = new SqlConnection(pConnectionString);
+                Debug.WriteLine("Opening connection");
                 testConn.Open();
+                Debug.WriteLine("Connection opened");
                 testConn.Close();
-                return true;
+                Debug.WriteLine("Connection closed");
+                */
+                return false;
             }
-            catch
+            catch(Exception ex)
             {
+                Debug.WriteLine(ex);
                 return false;
             }
         }
